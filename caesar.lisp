@@ -1,17 +1,26 @@
 (defparameter *alphabet* "AĄBCĆDEĘFGHIJKLŁMNŃOÓPQRSŚTUVWXYZŹŻ")
 
-(defun caesar-encrypt (phrase offset)
+(defun %shift-alphabet (alphabet offset)
+  (concatenate 'string
+                   (subseq alphabet (- (length alphabet) offset)) ; should I put this length to let??
+                   (subseq alphabet 0 (- (length alphabet) offset))))
+
+(defun %caesar-helper (phrase alphabet new-alphabet collector)
   (loop
-    with new-alphabet = (concatenate 'string
-                                     (subseq *alphabet* offset)
-                                     (subseq *alphabet* 0 offset))
-    with result = ""
     for char across (string-upcase phrase)
-    do (when (find char *alphabet*)
-         (setf result
+    do (when (find char alphabet)
+         (setf collector
                (concatenate
                 'string
-                result (subseq *alphabet*
-                               (position char new-alphabet)
-                               (+ 1 (position char new-alphabet))))))
-    finally (return-from caesar-encrypt result)))
+                collector (subseq new-alphabet
+                               (position char alphabet)
+                               (+ 1 (position char alphabet))))))
+    finally (return-from %caesar-helper collector)))
+
+(defun caesar-encrypt (phrase offset)
+  (let ((new-alphabet (%shift-alphabet *alphabet* offset)))
+    (%caesar-helper phrase *alphabet* new-alphabet "")))
+
+(defun caesar-decrypt (phrase offset)
+  (let ((old-alphabet (%shift-alphabet *alphabet* offset)))
+    (%caesar-helper phrase old-alphabet *alphabet* "")))
